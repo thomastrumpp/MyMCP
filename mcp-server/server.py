@@ -1,4 +1,5 @@
 from fastmcp import FastMCP
+import math
 
 # Initialize the FastMCP server
 mcp = FastMCP("MathTools")
@@ -29,6 +30,13 @@ def divide(a: float, b: float) -> float:
 def square(a: float) -> float:
     """Squares a number."""
     return a * a
+
+@mcp.tool()
+def sqrt(a: float) -> float:
+    """Calculates the square root of a number."""
+    if a < 0:
+        raise ValueError("Cannot calculate square root of a negative number")
+    return math.sqrt(a)
 
 # Expose the ASGI app for uvicorn
 # We use 'sse' transport to make it compatible with standard MCP clients connecting via SSE

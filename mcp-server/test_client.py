@@ -57,6 +57,22 @@ async def run_tests():
             result_sq = await session.call_tool("square", arguments={"a": 5})
             print(f"Result: {result_sq.content[0].text}")
 
+            # Test Square Root
+            print("\n--- Testing Square Root (sqrt(16)) ---")
+            result_sqrt = await session.call_tool("sqrt", arguments={"a": 16})
+            print(f"Result: {result_sqrt.content[0].text}")
+
+            # Test Square Root Negative
+            print("\n--- Testing Square Root Negative (sqrt(-1)) ---")
+            try:
+                result_sqrt_neg = await session.call_tool("sqrt", arguments={"a": -1})
+                if result_sqrt_neg.isError:
+                    print(f"Result: Caught Expected Error (via isError=True) -> {result_sqrt_neg.content[0].text}")
+                else:
+                    print(f"Result: Unexpected success -> {result_sqrt_neg.content[0].text}")
+            except Exception as e:
+                print(f"Result: Caught Exception -> {e}")
+
             # Test Misuse (Type Error)
             print("\n--- Testing Misuse: Invalid Type (String instead of Float) ---")
             try:
