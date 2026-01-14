@@ -38,6 +38,13 @@ def sqrt(a: float) -> float:
         raise ValueError("Cannot calculate square root of a negative number")
     return math.sqrt(a)
 
+@mcp.tool()
+def factorial(n: int) -> int:
+    """Calculates the factorial of a non-negative integer."""
+    if n < 0:
+        raise ValueError("Factorial is not defined for negative numbers")
+    return math.factorial(n)
+
 # Expose the ASGI app for uvicorn
 # We use 'sse' transport to make it compatible with standard MCP clients connecting via SSE
 app = mcp.http_app(transport='sse')

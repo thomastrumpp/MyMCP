@@ -73,6 +73,22 @@ async def run_tests():
             except Exception as e:
                 print(f"Result: Caught Exception -> {e}")
 
+            # Test Factorial
+            print("\n--- Testing Factorial (5!) ---")
+            result_fact = await session.call_tool("factorial", arguments={"n": 5})
+            print(f"Result: {result_fact.content[0].text}")
+
+            # Test Factorial Negative
+            print("\n--- Testing Factorial Negative (-1) ---")
+            try:
+                result_fact_neg = await session.call_tool("factorial", arguments={"n": -1})
+                if result_fact_neg.isError:
+                    print(f"Result: Caught Expected Error (via isError=True) -> {result_fact_neg.content[0].text}")
+                else:
+                    print(f"Result: Unexpected success -> {result_fact_neg.content[0].text}")
+            except Exception as e:
+                print(f"Result: Caught Exception -> {e}")
+
             # Test Misuse (Type Error)
             print("\n--- Testing Misuse: Invalid Type (String instead of Float) ---")
             try:
