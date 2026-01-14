@@ -52,6 +52,11 @@ async def run_tests():
             except Exception as e:
                 print(f"Result: Caught Exception -> {e}")
 
+            # Test Square
+            print("\n--- Testing Square (5^2) ---")
+            result_sq = await session.call_tool("square", arguments={"a": 5})
+            print(f"Result: {result_sq.content[0].text}")
+
             # Test Misuse (Type Error)
             print("\n--- Testing Misuse: Invalid Type (String instead of Float) ---")
             try:

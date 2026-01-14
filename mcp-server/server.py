@@ -25,6 +25,11 @@ def divide(a: float, b: float) -> float:
         raise ValueError("Cannot divide by zero")
     return a / b
 
+@mcp.tool()
+def square(a: float) -> float:
+    """Squares a number."""
+    return a * a
+
 # Expose the ASGI app for uvicorn
 # We use 'sse' transport to make it compatible with standard MCP clients connecting via SSE
 app = mcp.http_app(transport='sse')
