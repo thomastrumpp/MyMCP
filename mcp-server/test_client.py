@@ -36,6 +36,22 @@ async def run_tests():
             result_mul = await session.call_tool("multiply", arguments={"a": 6, "b": 8})
             print(f"Result: {result_mul.content[0].text}")
 
+            # Test Divide
+            print("\n--- Testing Divide (20 / 4) ---")
+            result_div = await session.call_tool("divide", arguments={"a": 20, "b": 4})
+            print(f"Result: {result_div.content[0].text}")
+
+            # Test Divide by Zero
+            print("\n--- Testing Divide by Zero (10 / 0) ---")
+            try:
+                result_div_zero = await session.call_tool("divide", arguments={"a": 10, "b": 0})
+                if result_div_zero.isError:
+                    print(f"Result: Caught Expected Error (via isError=True) -> {result_div_zero.content[0].text}")
+                else:
+                    print(f"Result: Unexpected success -> {result_div_zero.content[0].text}")
+            except Exception as e:
+                print(f"Result: Caught Exception -> {e}")
+
             # Test Misuse (Type Error)
             print("\n--- Testing Misuse: Invalid Type (String instead of Float) ---")
             try:
