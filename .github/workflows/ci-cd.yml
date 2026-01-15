@@ -100,7 +100,8 @@ jobs:
 
       - name: Build and Push Container
         run: |
-          gcloud builds submit mcp_server \
+          gcloud builds submit . \
+            --file mcp_server/Dockerfile \
             --tag ${{ steps.image-name.outputs.image }} \
             --project ${{ env.PROJECT_ID }}
 
