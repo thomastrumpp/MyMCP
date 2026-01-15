@@ -20,4 +20,4 @@ RUN uv sync --frozen --no-dev
 # Cloud Run expects the container to listen on $PORT (default 8080)
 # Ensure we use the venv created by uv
 ENV PATH="/app/.venv/bin:$PATH"
-CMD exec fastmcp run mcp_server/server.py --host 0.0.0.0 --port ${PORT:-8080}
+CMD exec fastmcp run mcp_server/server.py --transport sse
