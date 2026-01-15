@@ -105,7 +105,7 @@ ignore_missing_imports = true
 
 [tool.pytest.ini_options]
 minversion = "6.0"
-addopts = "-ra -q --cov=server"
+addopts = "-ra -q --cov=mcp_server"
 testpaths = [
     "tests",
 ]
@@ -136,7 +136,7 @@ upload_to_release = true
 build_command = "uv build"
 
 [tool.mutmut]
-paths_to_mutate = "mcp_server"
+paths_to_mutate = ["mcp_server"]
 runner = "uv run pytest"
-tests_dir = "tests"
+tests_dir = ["tests"]
 paths_to_exclude = "mcp_server/venv"
