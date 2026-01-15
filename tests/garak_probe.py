@@ -1,7 +1,7 @@
+
 import garak.generators.base
 from vertexai.preview.generative_models import GenerativeModel
-import google.auth
-import os
+
 
 class VertexAIGenerator(garak.generators.base.Generator):
     """Wrapper for Vertex AI Gemini models."""

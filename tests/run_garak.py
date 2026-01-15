@@ -1,24 +1,25 @@
-import sys
-import os
 import logging
+import os
+import sys
 
 # Configure logging to see output
 logging.basicConfig(level=logging.INFO)
 
 # Ensure project root is in path
+# Ensure project root is in path
 sys.path.insert(0, os.getcwd())
 
-from garak.harnesses.base import Harness
-from garak.evaluators import ZeroToleranceEvaluator
-from garak.probes.dan import Dan_11_0
-import importlib
+import importlib  # noqa: E402
+
+from garak.harnesses.base import Harness  # noqa: E402
+from garak.probes.dan import Dan_11_0  # noqa: E402
 
 # Import custom generator
 try:
     tests_path = os.path.join(os.getcwd(), 'tests')
     if tests_path not in sys.path:
         sys.path.append(tests_path)
-    import garak_probe
+    # import garak_probe (removed unused import)
     from garak_probe import VertexAIGenerator
 except ImportError as e:
     print(f"Could not import VertexAIGenerator from garak_probe: {e}")

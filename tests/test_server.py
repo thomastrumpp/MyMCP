@@ -1,5 +1,7 @@
-from mcp_server.server import add, subtract, multiply, divide, square, sqrt, factorial, calculate_sin
 import pytest
+
+from mcp_server.server import add, calculate_sin, divide, factorial, multiply, sqrt, square, subtract
+
 
 def test_add():
     assert add(1, 2) == 3

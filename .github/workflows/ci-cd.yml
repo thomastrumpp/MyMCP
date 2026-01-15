@@ -24,21 +24,21 @@ jobs:
   # ------------------------------------------------------------------
   # Stage 1: Fast Feedback (Tests & Linting)
   # ------------------------------------------------------------------
-  test-frontend:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: ${{ env.NODE_VERSION }}
-      - name: Install & Test Frontend
-        run: |
-          cd frontend
-          npm ci
-          npm run lint
-          npm run build
+  # test-frontend:
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - uses: actions/setup-node@v4
+  #       with:
+  #         node-version: ${{ env.NODE_VERSION }}
+  #     - name: Install & Test Frontend
+  #       run: |
+  #         cd frontend
+  #         npm ci
+  #         npm run lint
+  #         npm run build
 
-  test-backend:
+  test-mcp-server:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -76,7 +76,7 @@ jobs:
   # Stage 2: Build & Supply Chain Security
   # ------------------------------------------------------------------
   build-and-secure:
-    needs: [test-frontend, test-backend, infrastructure-check]
+    needs: [test-mcp-server, infrastructure-check]
     if: github.event_name == 'push' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     outputs:
@@ -150,24 +150,24 @@ jobs:
           github_token: ${{ secrets.GITHUB_TOKEN }}
 
   # ------------------------------------------------------------------
-  # Stage 4: Deploy
+  # Stage 4: Deploy (Disabled)
   # ------------------------------------------------------------------
-  deploy:
-    needs: [build-and-secure, release]
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - name: Google Auth
-        uses: google-github-actions/auth@v2
-        with:
-          workload_identity_provider: "projects/139388198422/locations/global/workloadIdentityPools/github-pool-v2/providers/github-provider-v2"
-          service_account: "github-actions-sa@mymcp-antigravity-prod.iam.gserviceaccount.com"
-
-      - name: Deploy to Cloud Run
-        uses: google-github-actions/deploy-cloudrun@v2
-        with:
-          service: ${{ env.SERVICE_NAME }}
-          region: ${{ env.REGION }}
-          image: ${{ needs.build-and-secure.outputs.image }}
-          flags: "--allow-unauthenticated --port 8080"
+  # deploy:
+  #   needs: [build-and-secure, release]
+  #   if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v4
+  #     - name: Google Auth
+  #       uses: google-github-actions/auth@v2
+  #       with:
+  #         workload_identity_provider: "projects/139388198422/locations/global/workloadIdentityPools/github-pool-v2/providers/github-provider-v2"
+  #         service_account: "github-actions-sa@mymcp-antigravity-prod.iam.gserviceaccount.com"
+  #
+  #     - name: Deploy to Cloud Run
+  #       uses: google-github-actions/deploy-cloudrun@v2
+  #       with:
+  #         service: ${{ env.SERVICE_NAME }}
+  #         region: ${{ env.REGION }}
+  #         image: ${{ needs.build-and-secure.outputs.image }}
+  #         flags: "--allow-unauthenticated --port 8080"

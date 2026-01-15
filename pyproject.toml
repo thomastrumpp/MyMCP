@@ -68,6 +68,7 @@ exclude = [
     "dist",
     "node_modules",
     "venv",
+    "mutants",
 ]
 
 line-length = 120
@@ -81,6 +82,7 @@ python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+exclude = ["mutants"]
 # ignore_missing_imports = true # Commented out for strict mode compliance, enable if needed
 
 
