@@ -2,3 +2,5 @@ ruff
 mypy
 pre-commit
 types-requests
+pytest
+pytest-cov
