@@ -107,6 +107,9 @@ jobs:
       - name: Install Cosign
         uses: sigstore/cosign-installer@v3.3.0
 
+      - name: Configure Docker Auth
+        run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev
+
       - name: Generate SBOM (Syft)
         uses: anchore/sbom-action@v0
         with:
