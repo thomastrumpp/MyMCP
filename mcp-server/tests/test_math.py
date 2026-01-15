@@ -6,33 +6,33 @@ from server import mcp, add, subtract, multiply, divide, square, sqrt, factorial
 # FastMCP decorators usually preserve the underlying function call, but let's verify logic directly.
 
 def test_add():
-    assert add(1, 2) == 3
-    assert add(-1, -1) == -2
+    assert add.fn(1, 2) == 3
+    assert add.fn(-1, -1) == -2
 
 def test_subtract():
-    assert subtract(10, 5) == 5
-    assert subtract(0, 5) == -5
+    assert subtract.fn(10, 5) == 5
+    assert subtract.fn(0, 5) == -5
 
 def test_multiply():
-    assert multiply(3, 4) == 12
-    assert multiply(0, 100) == 0
+    assert multiply.fn(3, 4) == 12
+    assert multiply.fn(0, 100) == 0
 
 def test_divide():
-    assert divide(10, 2) == 5.0
+    assert divide.fn(10, 2) == 5.0
     with pytest.raises(ValueError, match="Cannot divide by zero"):
-        divide(10, 0)
+        divide.fn(10, 0)
 
 def test_square():
-    assert square(5) == 25
-    assert square(-4) == 16
+    assert square.fn(5) == 25
+    assert square.fn(-4) == 16
 
 def test_sqrt():
-    assert sqrt(16) == 4.0
+    assert sqrt.fn(16) == 4.0
     with pytest.raises(ValueError, match="Cannot calculate square root of a negative number"):
-        sqrt(-1)
+        sqrt.fn(-1)
 
 def test_factorial():
-    assert factorial(5) == 120
-    assert factorial(0) == 1
+    assert factorial.fn(5) == 120
+    assert factorial.fn(0) == 1
     with pytest.raises(ValueError, match="Factorial is not defined for negative numbers"):
-        factorial(-1)
+        factorial.fn(-1)
