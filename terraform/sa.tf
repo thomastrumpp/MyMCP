@@ -18,7 +18,8 @@ resource "google_project_iam_member" "sa_roles" {
     "roles/iam.serviceAccountUser",
     "roles/cloudbuild.builds.editor",
     "roles/aiplatform.user",
-    "roles/viewer"
+    "roles/viewer",
+    "roles/artifactregistry.writer"
   ])
 
   project = var.project_id
