@@ -1,4 +1,0 @@
-fastmcp
-uvicorn
-google-cloud-aiplatform
-

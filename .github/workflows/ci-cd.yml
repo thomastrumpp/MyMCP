@@ -1,45 +1,173 @@
-name: CI/CD Pipeline
+name: Modern CI/CD Pipeline
 
 on:
   push:
-    branches: [ 'main' ]
+    branches: ["main"]
   pull_request:
-    branches: [ 'main' ]
+    branches: ["main"]
+
+env:
+  PROJECT_ID: mymcp-antigravity-prod
+  REGION: europe-west1
+  REPO_NAME: cloud-run-source-deploy
+  SERVICE_NAME: mcp-server
+  PYTHON_VERSION: "3.11"
+  NODE_VERSION: "20.x"
+
+permissions:
+  contents: write
+  id-token: write
+  issues: write
+  pull-requests: write
 
 jobs:
+  # ------------------------------------------------------------------
+  # Stage 1: Fast Feedback (Tests & Linting)
+  # ------------------------------------------------------------------
   test-frontend:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Use Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20.x'
-    - name: Install dependencies
-      run: cd frontend && npm ci
-    - name: Run Lint
-      run: cd frontend && npm run lint
-    - name: Run Build
-      run: cd frontend && npm run build
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+      - name: Install & Test Frontend
+        run: |
+          cd frontend
+          npm ci
+          npm run lint
+          npm run build
 
   test-backend:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Set up Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: '3.11'
-    - name: Install dependencies
-      run: |
-        python -m pip install --upgrade pip
-        if [ -f backend/requirements.txt ]; then pip install -r backend/requirements.txt; fi
+      - uses: actions/checkout@v4
+      - name: Install uv
+        uses: astral-sh/setup-uv@v5
+        with:
+          version: "0.5.21"
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+      - name: Install dependencies
+        run: uv sync
+      - name: Lint (Ruff)
+        run: uv run ruff check .
+      - name: Type Check (Mypy)
+        run: uv run mypy .
+      - name: Test (Pytest)
+        run: uv run pytest
 
-  deploy:
-    needs: [test-frontend, test-backend]
-    if: github.ref == 'refs/heads/main'
+  infrastructure-check:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v4
-    - name: Deploy to Cloud Run
-      run: echo 'Deploy step placeholder'
+      - uses: actions/checkout@v4
+      - uses: opentofu/setup-opentofu@v1
+        with:
+          tofu_version: 1.6.0
+      - name: Tofu Init & Validate
+        working-directory: ./terraform
+        run: |
+          tofu init -backend=false
+          tofu validate
+
+  # ------------------------------------------------------------------
+  # Stage 2: Build & Supply Chain Security
+  # ------------------------------------------------------------------
+  build-and-secure:
+    needs: [test-frontend, test-backend, infrastructure-check]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    outputs:
+      image: ${{ steps.image-name.outputs.image }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Google Auth
+        id: auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: "projects/139388198422/locations/global/workloadIdentityPools/github-pool-v2/providers/github-provider-v2"
+          service_account: "github-actions-sa@mymcp-antigravity-prod.iam.gserviceaccount.com"
+
+      - name: Set up Cloud SDK
+        uses: google-github-actions/setup-gcloud@v2
+
+      - name: Define Image Name
+        id: image-name
+        run: echo "image=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.REPO_NAME }}/${{ env.SERVICE_NAME }}:${{ github.sha }}" >> $GITHUB_OUTPUT
+
+      - name: Build and Push Container
+        run: |
+          gcloud builds submit mcp_server \
+            --tag ${{ steps.image-name.outputs.image }} \
+            --project ${{ env.PROJECT_ID }}
+
+      - name: Install Cosign
+        uses: sigstore/cosign-installer@v3.3.0
+
+      - name: Generate SBOM (Syft)
+        uses: anchore/sbom-action@v0
+        with:
+          image: ${{ steps.image-name.outputs.image }}
+          format: cyclonedx-json
+          output-file: sbom.json
+
+      - name: Scan Vulnerabilities (Trivy)
+        uses: aquasecurity/trivy-action@0.16.1
+        with:
+          image-ref: ${{ steps.image-name.outputs.image }}
+          format: "table"
+          exit-code: "0" # Don't fail build yet, just report
+          ignore-unfixed: true
+          vuln-type: "os,library"
+          severity: "CRITICAL,HIGH"
+
+      - name: Sign Image (Cosign)
+        # Note: Keeps keyless signing simple if OIDC enabled, otherwise assumes key unless configured.
+        # For simplicity in this automated setup, we attempt keyless (requires OIDC).
+        # If GCP_SA_KEY is used, might strictly need key pair or OIDC provider setup.
+        # We will attempt it but continue if fails to not block deploy (soft fail for first run).
+        continue-on-error: true
+        run: |
+          cosign sign --yes ${{ steps.image-name.outputs.image }}
+
+  # ------------------------------------------------------------------
+  # Stage 3: Release
+  # ------------------------------------------------------------------
+  release:
+    needs: [build-and-secure]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Python Semantic Release
+        uses: python-semantic-release/python-semantic-release@master
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+
+  # ------------------------------------------------------------------
+  # Stage 4: Deploy
+  # ------------------------------------------------------------------
+  deploy:
+    needs: [build-and-secure, release]
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Google Auth
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: "projects/139388198422/locations/global/workloadIdentityPools/github-pool-v2/providers/github-provider-v2"
+          service_account: "github-actions-sa@mymcp-antigravity-prod.iam.gserviceaccount.com"
+
+      - name: Deploy to Cloud Run
+        uses: google-github-actions/deploy-cloudrun@v2
+        with:
+          service: ${{ env.SERVICE_NAME }}
+          region: ${{ env.REGION }}
+          image: ${{ needs.build-and-secure.outputs.image }}
+          flags: "--allow-unauthenticated --port 8080"
