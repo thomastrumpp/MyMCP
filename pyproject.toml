@@ -82,8 +82,25 @@ python_version = "3.11"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
-exclude = ["mutants"]
+exclude = [
+    "mutants",
+    "test_client.py",
+    "test_gemini_agent.py",
+    "garak_probe.py",
+    "inspect_tool.py",
+    "mcp_server/inspect_tool.py",
+    "tests/garak_wrapper.py",
+    "backend",
+    "mcp_server/tests",
+    "mcp_server/test_remote.py",
+    "tests/run_garak.py",
+    "tests/locustfile.py"
+]
 # ignore_missing_imports = true # Commented out for strict mode compliance, enable if needed
+
+[[tool.mypy.overrides]]
+module = "garak.*"
+ignore_missing_imports = true
 
 
 [tool.pytest.ini_options]

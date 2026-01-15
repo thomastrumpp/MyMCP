@@ -1,4 +1,4 @@
-from server import add
+from mcp_server.server import add
 
 print(f"Type: {type(add)}")
 print(f"Dir: {dir(add)}")

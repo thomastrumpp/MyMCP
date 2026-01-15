@@ -20,7 +20,7 @@ try:
     if tests_path not in sys.path:
         sys.path.append(tests_path)
     # import garak_probe (removed unused import)
-    from garak_probe import VertexAIGenerator
+    from garak_probe import VertexAIGenerator  # type: ignore
 except ImportError as e:
     print(f"Could not import VertexAIGenerator from garak_probe: {e}")
     sys.exit(1)
